@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 type GitHubUser = {
   login: string;
@@ -56,15 +54,16 @@ export async function POST(req: Request) {
       Public repos: ${user.public_repos}
       Repos: ${repoSummary}
     `;
-    //const prompt = `hi`;
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-    });
 
-    //console.log(completion);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const summary = completion.choices[0].message?.content || "No summary generated";
+    const result = await model.generateContent(prompt);
+
+    //const result = await model.generateContent("Hi");       // test 
+
+    const summary = result.response.text() || "No summary generated";
+
+    //console.log(summary);
 
     return NextResponse.json({ summary });
   } catch (error: any) {

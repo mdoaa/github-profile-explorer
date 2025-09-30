@@ -18,6 +18,17 @@ export default function Home() {
         </button>
       </div>
 
+      <div className="flex items-center justify-center mt-5 gap-2 w-full max-w-2xl mx-auto">
+        <button
+          onClick={() => {
+            window.location.href = "/summary";
+          }}
+          className="mt-6 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          Summarize GitHub Profile
+        </button>
+      </div>
+
       <div className="mt-10 text-center text-gray-500">
         <p>
           Enter a GitHub username above to view profile details and
@@ -25,6 +36,9 @@ export default function Home() {
         </p>
         <p className="mt-2">
           Or click "Compare GitHub Users" to compare two users side by side.
+        </p>
+        <p className="mt-2">
+          Or click "Summarize GitHub Profile" to summarize GitHub profile.
         </p>
       </div>
     </>

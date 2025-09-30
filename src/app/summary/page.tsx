@@ -26,22 +26,26 @@ export default function GitHubSummary() {
   }
 
   return (
-    <div className="space-y-4">
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Enter GitHub username"
-        className="border p-2 rounded w-full"
-      />
-      <button
-        onClick={handleSubmit}
-        disabled={!username || loading}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        {loading ? "Summarizing..." : "Summarize"}
-      </button>
-      {summary && <p className="mt-4">{summary}</p>}
+    <div className="flex items-center justify-center mt-50 gap-2 w-full max-w-2xl mx-auto">
+      <div className="flex items-center gap-2 w-full">
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter GitHub username"
+          className="flex-grow px-4 py-2 border rounded-lg"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!username || loading}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          {loading ? "Summarizing..." : "Summarize"}
+        </button>
+      </div>
+       {summary && (
+      <p className="mt-4 w-full px-4 py-2 text-center">{summary}</p>
+    )}
     </div>
   );
 }
