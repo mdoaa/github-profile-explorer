@@ -1,4 +1,6 @@
 import Image from "next/image";
+import UserNotes from "@/components/UserNotes";
+
 
 type Params = {
   params: {
@@ -114,9 +116,11 @@ export default async function UserPage( { params }: Params) {
             View on GitHub
           </a>
         </div>
-      </div>
+        </div>
+        
+        <UserNotes username={userData.login} />
 
-      {/* Repo List */}
+
       <h2 className="text-xl font-semibold mb-4">Repositories</h2>
       {userRepos.length === 0 ? (
         <p className="text-gray-500">No repositories found.</p>
