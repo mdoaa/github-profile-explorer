@@ -39,19 +39,33 @@ async function fetchUserData(username: string): Promise<User | null> {
 }
 
 async function fetchUserRepos(username: string): Promise<Repo[]> {
-  try {
-    const res = await fetch(
-      `https://api.github.com/users/${username}/repos`,
-      {
-        cache: "no-store",
-      }
-    );
-    if (res.ok) return res.json();
-    return [];
-  } catch {
-    return [];
+  const allRepos: Repo[] = [];
+  let page = 1;
+  const perPage = 100; // max allowed by GitHub API
+
+  while (true) {
+    try {
+      const res = await fetch(
+        `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) break;
+
+      const repos: Repo[] = await res.json();
+      if (repos.length === 0) break;
+
+      allRepos.push(...repos);
+
+      if (repos.length < perPage) break;
+      page++;
+    } catch {
+      break;
+    }
   }
+
+  return allRepos;
 }
+
 
 export default async function UserPage( { params }: Params) {
 

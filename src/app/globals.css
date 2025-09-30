@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+
+.font-geist {
+  font-family: var(--font-geist);
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-geist: 'Geist', sans-serif;
+
 }
 
 @theme inline {
