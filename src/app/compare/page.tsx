@@ -19,15 +19,70 @@ interface UserStats {
   };
 }
 
+async function fetchCommitsLastMonth(username: string, repos: any[]) {
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+  let totalCommits = 0;
+  const commitsByDay: Record<string, number> = {};
+
+  for (const repo of repos) {
+    if (repo.fork) continue;
+
+    let page = 1;
+    while (true) {
+      const commitsRes = await fetch(
+        `https://api.github.com/repos/${repo.owner.login}/${repo.name}/commits?since=${oneMonthAgo.toISOString()}&author=${username}&per_page=100&page=${page}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+            "User-Agent": "nextjs-app",
+          },
+          next: { revalidate: 60 },
+        }
+      );
+
+      if (!commitsRes.ok) break;
+
+      const commits = await commitsRes.json();
+      if (commits.length === 0) break;
+
+      commits.forEach((c: any) => {
+        const day = c.commit.author.date.split("T")[0];
+        commitsByDay[day] = (commitsByDay[day] || 0) + 1;
+        totalCommits++;
+      });
+
+      if (commits.length < 100) break; // no more pages
+      page++;
+    }
+  }
+
+  const activeDays = Object.keys(commitsByDay).length;
+  const avgPerActiveDay = activeDays > 0 ? totalCommits / activeDays : 0;
+
+  return { totalCommits, activeDays, avgPerActiveDay };
+}
+
 async function fetchUserStats(username: string): Promise<UserStats | null> {
   try {
     const userRes = await fetch(`https://api.github.com/users/${username}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        "User-Agent": "nextjs-app",
+      },
       next: { revalidate: 60 },
     });
     if (!userRes.ok) return null;
     const userData = await userRes.json();
 
-    const reposRes = await fetch(userData.repos_url);
+    const reposRes = await fetch(userData.repos_url, {
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        "User-Agent": "nextjs-app",
+      },
+      next: { revalidate: 60 },
+    });
     if (!reposRes.ok) return null;
     const repos = await reposRes.json();
 
@@ -37,45 +92,16 @@ async function fetchUserStats(username: string): Promise<UserStats | null> {
       0
     );
 
-    const eventsRes = await fetch(
-      `https://api.github.com/users/${username}/events`
-    );
-      const events = eventsRes.ok ? await eventsRes.json() : [];
-      
-      //console.log("Events for", username, events);
-
-    const now = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-    const commitsByDay: Record<string, number> = {};
-
-    events
-      .filter(
-        (e: any) =>
-          e.type === "PushEvent" && new Date(e.created_at) >= oneMonthAgo
-      )
-      .forEach((e: any) => {
-        const day = e.created_at.split("T")[0]; 
-        const commits = e.payload.commits?.length || 0;
-        commitsByDay[day] = (commitsByDay[day] || 0) + commits;
-      });
-
-    const totalCommits = Object.values(commitsByDay).reduce(
-      (a, b) => a + b,
-      0
-    );
-    const activeDays = Object.keys(commitsByDay).length;
-    const avgPerActiveDay =
-      activeDays > 0 ? totalCommits / activeDays : 0;
+    const commitFreq = await fetchCommitsLastMonth(username, repos);
 
     return {
       name: userData.login,
       repoCount,
       totalStars,
-      commitFreq: { totalCommits, activeDays, avgPerActiveDay },
+      commitFreq,
     };
-  } catch {
+  } catch (err) {
+    console.error("fetchUserStats error:", err);
     return null;
   }
 }
@@ -88,6 +114,9 @@ export default async function ComparePage({ searchParams }: Params) {
     u1 && u2
       ? await Promise.all([fetchUserStats(u1), fetchUserStats(u2)])
       : [null, null];
+
+  console.log("user1:", user1);
+  console.log("user2:", user2);
 
   return (
     <div className="p-6">
@@ -103,7 +132,7 @@ export default async function ComparePage({ searchParams }: Params) {
         ) : (
           <table className="table-auto border-collapse border border-gray-400 w-full text-center">
             <thead>
-              <tr className="bg-gray-500">
+              <tr className="bg-gray-500 text-white">
                 <th className="border px-4 py-2">Metric</th>
                 <th className="border px-4 py-2">{user1.name}</th>
                 <th className="border px-4 py-2">{user2.name}</th>

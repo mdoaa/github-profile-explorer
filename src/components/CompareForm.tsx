@@ -19,7 +19,18 @@ export default function CompareForm({ initU1 = "", initU2 = "" }: Props) {
         router.push(`/compare?u1=${encodeURIComponent(user1.trim())}&u2=${encodeURIComponent(user2.trim())}`);
     }
 
-     return (
+  return (
+    <>
+      <div className="flex items-center justify-center mt-12 gap-2 w-full max-w-2xl mx-auto">
+        <button
+          onClick={() => {
+            window.location.href = "/";
+          }}
+          className="mt-6 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+           ← Back Home
+        </button>
+      </div>
     <form onSubmit={handleSubmit} className="flex gap-2 items-center">
       <input
         value={user1}
@@ -40,6 +51,7 @@ export default function CompareForm({ initU1 = "", initU2 = "" }: Props) {
       >
         Compare
       </button>
-    </form>
+      </form>
+      </>
   );
 }

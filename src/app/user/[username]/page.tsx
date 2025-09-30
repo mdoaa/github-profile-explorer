@@ -1,5 +1,6 @@
 import Image from "next/image";
 import UserNotes from "@/components/UserNotes";
+import Link from "next/link";
 
 
 type Params = {
@@ -29,15 +30,22 @@ type Repo = {
 };
 
 async function fetchUserData(username: string): Promise<User | null> {
+      console.log("user:", username);
   try {
     const res = await fetch(`https://api.github.com/users/${username}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        "User-Agent": "nextjs-app",
+      },
       cache: "no-store",
     });
+     console.log("Fetch user response:", res);
     if (res.ok) return res.json();
     return null;
-  } catch {
-    return null;
-  }
+  } catch (err) {
+  console.error("Fetch user failed:", err);
+  return null;
+}
 }
 
 async function fetchUserRepos(username: string): Promise<Repo[]> {
@@ -49,8 +57,14 @@ async function fetchUserRepos(username: string): Promise<Repo[]> {
     try {
       const res = await fetch(
         `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}`,
-        { cache: "no-store" }
-      );
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+            "User-Agent": "nextjs-app",
+          },
+          cache: "no-store",
+        });
+      
       if (!res.ok) break;
 
       const repos: Repo[] = await res.json();
@@ -86,9 +100,15 @@ export default async function UserPage( { params }: Params) {
         );
     }
     
-    return (
+  return (
+      <>
+      <Link
+  href="/"
+  className="inline-block mt-10 ml-10 mb-6 px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+>
+  ← Back to Home
+</Link>
     <div className="max-w-4xl mx-auto p-6">
-      {/* User Info */}
       <div className="flex items-center gap-6 mb-8">
         <Image
           src={userData.avatar_url}
@@ -149,6 +169,7 @@ export default async function UserPage( { params }: Params) {
           ))}
         </ul>
       )}
-    </div>
+      </div>
+      </>
   );
 }

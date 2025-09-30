@@ -1,7 +1,6 @@
 "use client";
 
 import SearchBar from "@/components/SearchBar";
-import CompareForm from "@/components/CompareForm";
 
 export default function Home() {
   return (

@@ -20,12 +20,23 @@ type GitHubRepo = {
 };
 
 async function fetchGitHubProfile(username: string) {
-  const userRes = await fetch(`https://api.github.com/users/${username}`);
+ const userRes = await fetch(`https://api.github.com/users/${username}`, {
+  headers: {
+    Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    "User-Agent": "nextjs-app",
+  },
+});
+
   if (!userRes.ok) throw new Error("User not found");
   const user: GitHubUser = await userRes.json();
 
   const reposRes = await fetch(
-    `https://api.github.com/users/${username}/repos?per_page=100`
+    `https://api.github.com/users/${username}/repos?per_page=100`,{
+  headers: {
+    Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    "User-Agent": "nextjs-app",
+  },
+}
   );
   const repos: GitHubRepo[] = await reposRes.json();
 
